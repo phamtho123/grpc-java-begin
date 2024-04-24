@@ -9,11 +9,9 @@ message GreetingRequest {
   string first_name = 1;
 }
 
-
 message GreetingResponse {
   string result = 1;
 }
-
 
 service GreetingService {
   rpc greet(GreetingRequest) returns (GreetingResponse);
