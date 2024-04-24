@@ -2,6 +2,7 @@ package calculator.server;
 
 
 import com.proto.calculator.*;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServiceImplBase {
@@ -76,6 +77,21 @@ public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServi
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    @Override
+    public void sqrt(SqrtRequest request, StreamObserver<SqrtResponse> responseObserver) {
+        int number = request.getNumber();
+        if (number < 0){
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("The number begin cannot be negative")
+                    .asRuntimeException());
+            return;
+        }
+        responseObserver.onNext(
+            SqrtResponse.newBuilder().setResult(Math.sqrt(number)).build()
+        );
+        responseObserver.onCompleted();
     }
 
 }
