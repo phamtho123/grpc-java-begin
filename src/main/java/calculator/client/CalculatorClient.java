@@ -8,6 +8,7 @@ import io.grpc.stub.StreamObserver;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 public class CalculatorClient {
 
@@ -49,12 +50,42 @@ public class CalculatorClient {
             }
         });
 
-        Arrays.asList(1,2,3,4,5,6,7,8,9,10).forEach(number -> {
+        IntStream.range(1,11).forEach(number -> {
             stream.onNext(AvgRequest.newBuilder().setNumber(number).build());
         });
 
         stream.onCompleted();
         latch.await(3, TimeUnit.SECONDS);
+    }
+
+    private static void doMax(ManagedChannel channel) throws InterruptedException {
+        System.out.println("Enter doMax");
+        CalculatorServiceGrpc.CalculatorServiceStub stub = CalculatorServiceGrpc.newStub(channel);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        StreamObserver<MaxRequest> stream = stub.max(new StreamObserver<MaxResponse>() {
+            @Override
+            public void onNext(MaxResponse value) {
+                System.out.println("Max = " + value.getMax());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+
+            }
+
+            @Override
+            public void onCompleted() {
+                latch.countDown();
+            }
+        });
+
+        Arrays.asList(1,2,100,4,5,30,7,8,9,10).forEach(number -> {
+            stream.onNext(MaxRequest.newBuilder().setNumber(number).build());
+        });
+        stream.onCompleted();
+        latch.await(3, TimeUnit.SECONDS);
+
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -71,6 +102,7 @@ public class CalculatorClient {
             case "sum": doSum(channel); break;
             case "primes": doPrimes(channel); break;
             case "avg": doAvg(channel); break;
+            case "max": doMax(channel); break;
             default:
                 System.out.println("Keyword Invalid: " + args[0]);
         }
